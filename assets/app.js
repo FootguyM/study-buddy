@@ -178,14 +178,13 @@
     { id: 'anfragen', label: 'Anfragen & Buddies', short: 'Buddies', icon: 'users' },
     { id: 'profil', label: 'Mein Profil', short: 'Profil', icon: 'user' },
   ];
-  const LANDING_ANCHORS = ['so-gehts', 'funktionen', 'faq'];
+  const LANDING_ANCHORS = ['so-gehts'];
 
   function route() {
     const h = location.hash.replace('#', '');
     const isApp = ROUTES.some((r) => r.id === h);
     $('#landing').hidden = isApp;
     $('#app').hidden = !isApp;
-    $('#tab-nav').hidden = !isApp;
     document.title = isApp ? `${ROUTES.find((r) => r.id === h).label} · Study Buddy` : 'Study Buddy';
     if (isApp) {
       ui.route = h;
@@ -202,12 +201,12 @@
   // ---------------------------------------------------------------------------
   // Rahmen: Navigation und Profil-Chip
   // ---------------------------------------------------------------------------
+  const NAV_LABELS = { finden: 'Buddy finden', sessions: 'Lernsessions', anfragen: 'Anfragen' };
   function renderChrome() {
     const n = db.incoming.length;
-    $('#side-nav').innerHTML = `<span class="label nav-title">Menü</span>` + ROUTES.map((r) => `<a href="#${r.id}" ${ui.route === r.id ? 'aria-current="page"' : ''}>${icon(r.icon)}<span>${r.label}</span>${r.id === 'anfragen' && n ? `<span class="badge" aria-label="${n} neue Anfragen">${n}</span>` : ''}</a>`).join('');
-    $('#tab-nav').innerHTML = ROUTES.map((r) => `<a href="#${r.id}" ${ui.route === r.id ? 'aria-current="page"' : ''}>${icon(r.icon)}${r.short}${r.id === 'anfragen' && n ? `<span class="dot" aria-label="${n} neue Anfragen"></span>` : ''}</a>`).join('');
-    $('#me-chip').innerHTML = `${myAvatar('sm')}<span class="me-name small"><b>${esc(db.me.name || 'Mein Profil')}</b></span>`;
-    $('#me-chip').setAttribute('aria-label', 'Mein Profil');
+    const cur = (id) => (ui.route === id ? 'aria-current="page"' : '');
+    $('#top-nav').innerHTML = ROUTES.filter((r) => NAV_LABELS[r.id]).map((r) => `<a href="#${r.id}" ${cur(r.id)} aria-label="${NAV_LABELS[r.id]}">${icon(r.icon)}<span class="nav-label">${NAV_LABELS[r.id]}</span>${r.id === 'anfragen' && n ? `<span class="badge" aria-label="${n} neue Anfragen">${n}</span>` : ''}</a>`).join('')
+      + `<a class="nav-me" href="#profil" ${cur('profil')} aria-label="Mein Profil" title="Mein Profil">${myAvatar('sm')}</a>`;
   }
 
   const pageHead = (title, text, action = '') => `
@@ -220,22 +219,13 @@
   // Seite: Buddy finden
   // ---------------------------------------------------------------------------
   function candidates() {
-    const q = ui.q.trim().toLowerCase();
     const me = db.me;
-    let list = PEOPLE
+    return PEOPLE
       .filter((p) => !db.buddies.includes(p.id) && !db.incoming.some((r) => r.id === p.id))
       .filter((p) => ui.course === 'all' ? true : ui.course === 'mine' ? p.courses.some((c) => me.courses.includes(c)) : p.courses.includes(ui.course))
       .filter((p) => !ui.style || p.style === ui.style)
-      .filter((p) => !ui.place || p.places.includes(ui.place))
-      .filter((p) => !ui.onlyOnline || p.online)
-      .filter((p) => !q || p.name.toLowerCase().includes(q) || p.study.toLowerCase().includes(q) || p.courses.some((c) => courseName(c).toLowerCase().includes(q)))
-      .map((p) => ({ p, m: matchInfo(p) }));
-    const sorters = {
-      match: (a, b) => b.m.score - a.m.score,
-      time: (a, b) => b.m.sharedSlots.length - a.m.sharedSlots.length || b.m.score - a.m.score,
-      semester: (a, b) => Math.abs(a.p.semester - me.semester) - Math.abs(b.p.semester - me.semester) || b.m.score - a.m.score,
-    };
-    return list.sort(sorters[ui.sort]);
+      .map((p) => ({ p, m: matchInfo(p) }))
+      .sort((a, b) => b.m.score - a.m.score);
   }
 
   function personCard({ p, m }) {
@@ -264,83 +254,28 @@
       </article>`;
   }
 
-  function examsWidget() {
-    const exams = db.me.courses.map((c) => ({ c, days: daysUntil(COURSES[c].exam) })).filter((e) => e.days >= 0).sort((a, b) => a.days - b.days);
-    return `
-      <section class="widget" aria-labelledby="w-exams">
-        <div class="widget-head"><h3 id="w-exams">Klausur-Countdown</h3><span class="label">Deine Kurse</span></div>
-        ${exams.length ? exams.map(({ c, days }) => `
-          <div class="exam ${days <= 60 ? 'soon' : ''}">
-            <div class="days"><b>${days}</b><small>${days === 1 ? 'Tag' : 'Tage'}</small></div>
-            <div><b class="small">${esc(courseName(c))}</b><p class="small muted">${fmtDate(COURSES[c].exam, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}</p></div>
-          </div>`).join('') : '<p class="small muted">Trag in deinem Profil Kurse ein, dann siehst du hier deine Klausurtermine.</p>'}
-      </section>`;
-  }
-
-  function nextSessionWidget() {
-    const mine = db.sessions.filter((s) => s.joined && daysUntil(s.date) >= 0).sort((a, b) => a.date.localeCompare(b.date))[0];
-    return `
-      <section class="widget" aria-labelledby="w-next">
-        <div class="widget-head"><h3 id="w-next">Deine nächste Session</h3></div>
-        ${mine ? `<div><b class="small">${esc(mine.title)}</b><p class="small muted">${fmtDate(mine.date, { weekday: 'long', day: '2-digit', month: '2-digit' })}, ${mine.from} Uhr<br>${esc(mine.place)}</p></div>
-          <a class="btn btn-ghost" href="#sessions">Alle Sessions</a>`
-        : `<p class="small muted">Du bist noch bei keiner Session dabei.</p><a class="btn btn-ghost" href="#sessions">Sessions ansehen</a>`}
-      </section>`;
-  }
-
   function viewFind() {
     const list = candidates();
     const me = db.me;
-    const pc = completeness();
     const opt = (v, label, cur) => `<option value="${v}" ${cur === v ? 'selected' : ''}>${esc(label)}</option>`;
-    const active = [];
-    if (ui.course !== 'mine') active.push({ key: 'course', label: ui.course === 'all' ? 'Alle Kurse' : courseName(ui.course) });
-    if (ui.style) active.push({ key: 'style', label: STYLES[ui.style] });
-    if (ui.place) active.push({ key: 'place', label: PLACES[ui.place] });
-    if (ui.onlyOnline) active.push({ key: 'onlyOnline', label: 'Gerade online' });
-    if (ui.q) active.push({ key: 'q', label: `Suche: „${ui.q}“` });
-
+    const filtered = ui.course !== 'mine' || ui.style;
     return `
-      ${pageHead(`Hallo ${esc(firstName(me.name))}, wer lernt mit dir?`, 'Vorschläge aus deinen Kursen. Die Personen, die am besten zu dir passen, stehen oben.')}
-      <div class="layout">
-        <div class="stack">
-          ${pc < 100 ? `<div class="notice">
-            <div><b>Dein Profil ist zu ${pc}% vollständig.</b> <span class="small">Je mehr du einträgst, desto genauer werden die Vorschläge.</span></div>
-            <a class="btn btn-primary" href="#profil">Profil vervollständigen</a>
-          </div>` : ''}
-
-          <form class="toolbar" aria-label="Vorschläge filtern" onsubmit="return false">
-            <div class="field"><label for="f-course">Kurs</label>
-              <select id="f-course" data-ui="course">${opt('mine', 'Alle meine Kurse', ui.course)}${me.courses.map((c) => opt(c, courseName(c), ui.course)).join('')}${opt('all', 'Alle Kurse der Uni', ui.course)}</select></div>
-            <div class="field"><label for="f-style">Lernstil</label>
-              <select id="f-style" data-ui="style">${opt('', 'Egal', ui.style)}${Object.entries(STYLES).map(([k, v]) => opt(k, v, ui.style)).join('')}</select></div>
-            <div class="field"><label for="f-place">Ort</label>
-              <select id="f-place" data-ui="place">${opt('', 'Egal', ui.place)}${Object.entries(PLACES).map(([k, v]) => opt(k, v, ui.place)).join('')}</select></div>
-            <div class="field"><label for="f-sort">Sortieren nach</label>
-              <select id="f-sort" data-ui="sort">${opt('match', 'Beste Übereinstimmung', ui.sort)}${opt('time', 'Meiste gemeinsame Zeiten', ui.sort)}${opt('semester', 'Ähnliches Semester', ui.sort)}</select></div>
-          </form>
-
-          <div class="result-bar">
-            <div class="active-filters">
-              <b>${plural(list.length, 'Vorschlag', 'Vorschläge')}</b>
-              ${active.map((a) => `<span class="tag plain">${esc(a.label)}<button type="button" data-act="clear-filter" data-id="${a.key}" aria-label="Filter ${esc(a.label)} entfernen">${icon('x').replace('<svg', '<svg width="14" height="14"')}</button></span>`).join('')}
-              ${active.length > 1 ? '<button class="btn btn-text" data-act="reset-filters">Alle zurücksetzen</button>' : ''}
-            </div>
-            <label class="switch"><input type="checkbox" id="f-online" data-ui="onlyOnline" ${ui.onlyOnline ? 'checked' : ''}>Nur wer gerade online ist</label>
-          </div>
-
-          ${list.length ? `<div class="grid">${list.map(personCard).join('')}</div>` : `
-            <div class="empty">
-              <h3>Niemand passt zu diesen Filtern</h3>
-              <p class="muted small">Entferne einen Filter oder schau bei den offenen Lernsessions vorbei. Dort findest du oft schnell Anschluss.</p>
-              <div class="card-actions" style="justify-content:center"><button class="btn btn-primary" data-act="reset-filters">Filter zurücksetzen</button><a class="btn btn-ghost" href="#sessions">Zu den Sessions</a></div>
-            </div>`}
-        </div>
-        <aside class="aside" aria-label="Übersicht">
-          ${examsWidget()}
-          ${nextSessionWidget()}
-          <div class="tip"><span class="label">Tipp</span><p class="small"><b>Feste Termine wirken.</b> Trefft euch jede Woche zur gleichen Zeit. So bleibt ihr bis zur Klausur leichter dran.</p></div>
-        </aside>
+      ${pageHead(`Hallo ${esc(firstName(me.name))}, wer lernt mit dir?`, 'Die Personen, die am besten zu dir passen, stehen oben.')}
+      <div class="stack">
+        <form class="filterbar" aria-label="Vorschläge filtern" onsubmit="return false">
+          <label class="sr-only" for="f-course">Kurs</label>
+          <select id="f-course" data-ui="course">${opt('mine', 'Alle meine Kurse', ui.course)}${me.courses.map((c) => opt(c, courseName(c), ui.course)).join('')}${opt('all', 'Alle Kurse der Uni', ui.course)}</select>
+          <label class="sr-only" for="f-style">Lernstil</label>
+          <select id="f-style" data-ui="style">${opt('', 'Jeder Lernstil', ui.style)}${Object.entries(STYLES).map(([k, v]) => opt(k, v, ui.style)).join('')}</select>
+          <span class="count">${plural(list.length, 'Vorschlag', 'Vorschläge')}</span>
+          ${filtered ? '<button class="btn btn-text" data-act="reset-filters">Zurücksetzen</button>' : ''}
+        </form>
+        ${list.length ? `<div class="grid">${list.map(personCard).join('')}</div>` : `
+          <div class="empty">
+            <h3>Niemand passt zu diesen Filtern</h3>
+            <p class="muted small">Wähle einen anderen Kurs oder Lernstil.</p>
+            <button class="btn btn-primary" data-act="reset-filters">Filter zurücksetzen</button>
+          </div>`}
       </div>`;
   }
 
@@ -464,12 +399,10 @@
 
   function viewProfile() {
     const me = db.me;
-    const pc = completeness();
     const options = Object.keys(COURSES).filter((c) => !me.courses.includes(c));
     return `
       ${pageHead('Mein Profil', 'So sehen dich andere. Je vollständiger dein Profil, desto besser die Vorschläge.', `<span class="saved">${icon('check')}Wird automatisch gespeichert</span>`)}
-      <div class="layout">
-        <div class="stack">
+      <div class="stack">
           <section class="panel" aria-labelledby="p-about">
             <div class="panel-head"><h2 id="p-about">Über dich</h2><p>Name, Studiengang und ein kurzer Text.</p></div>
             <div class="form-grid">
@@ -509,19 +442,6 @@
                 : `<button class="btn btn-ghost" data-act="reset-ask">Zurücksetzen</button>`}
             </div>
           </section>
-        </div>
-
-        <aside class="aside" aria-label="Profilstatus">
-          <section class="widget">
-            <div class="profile-top">${myAvatar('lg')}<div class="grow"><b>${esc(me.name || 'Ohne Namen')}</b><span class="small muted">${esc(me.study)} · ${me.semester}. Semester</span></div></div>
-            <div class="block">
-              <div class="small" id="pc-label"><b>Profil ${pc}% vollständig</b></div>
-              <div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pc}" aria-labelledby="pc-label"><i style="width:${pc}%"></i></div>
-            </div>
-            <ul class="checklist" id="checklist">${checklistHtml()}</ul>
-          </section>
-          ${examsWidget()}
-        </aside>
       </div>`;
   }
   const checklistHtml = () => profileChecks().map((c) => `<li class="${c.ok ? 'done' : ''}">${icon(c.ok ? 'check' : 'plus')}${c.label}</li>`).join('');
@@ -764,11 +684,7 @@
       case 'ask': return modalAsk(id);
       case 'ice': $('#ask-text').value = modalAsk.ideas[+t.dataset.i]; $('#ask-text').focus(); return;
 
-      case 'clear-filter':
-        if (id === 'course') ui.course = 'mine'; else if (id === 'onlyOnline') ui.onlyOnline = false;
-        else if (id === 'q') { ui.q = ''; $('#q').value = ''; } else ui[id] = '';
-        return render();
-      case 'reset-filters': Object.assign(ui, { course: 'mine', style: '', place: '', onlyOnline: false, q: '' }); $('#q').value = ''; return render();
+      case 'reset-filters': Object.assign(ui, { course: 'mine', style: '' }); return render();
 
       case 'session-tab': ui.sessionTab = id; return render();
       case 'new-session': return modalNewSession();
@@ -845,21 +761,10 @@
 
   document.addEventListener('input', (e) => {
     const el = e.target;
-    if (el.id === 'q') {
-      ui.q = el.value;
-      if (ui.route !== 'finden') { location.hash = 'finden'; return; }
-      render();
-      return;
-    }
     if (el.dataset.me === 'name' || el.dataset.me === 'bio') {
       db.me[el.dataset.me] = el.value;
       save();
       if (el.dataset.me === 'bio') $('#bio-count').textContent = `${el.value.length}/240 Zeichen`;
-      const pc = completeness();
-      $('#pc-label').innerHTML = `<b>Profil ${pc}% vollständig</b>`;
-      $('.progress i').style.width = pc + '%';
-      $('.progress').setAttribute('aria-valuenow', pc);
-      $('#checklist').innerHTML = checklistHtml();
       renderChrome();
     }
   });
