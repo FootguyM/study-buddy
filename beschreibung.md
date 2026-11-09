@@ -2,88 +2,74 @@
 
 ## Kurzbeschreibung
 
-**Study Buddy** ist eine Webplattform, auf der Studierende an ihrer Uni schnell einen passenden Lernpartner finden.
-Man trägt seine Kurse, freien Zeiten, den eigenen Lernstil und bevorzugte Lernorte ein. Die Seite schlägt dann
-Kommiliton:innen vor, die zu einem passen, und zeigt, warum sie passen. Der Stil orientiert sich an Lernplattformen wie
-Studydrive: hell, aufgeräumt, Navigation links, Inhalte als Karten, blauer Akzent.
+**Study Buddy** ist ein Online-Forum, in dem Studierende an ihrer Uni Lernpartner finden. Jeder Kurs hat ein eigenes
+Unterforum. Dort posten Studierende Gesuche („Suche Buddy“), stellen Fragen zum Stoff oder laden zu Lerngruppen ein.
+Passende Lernpartner kann man direkt als Buddy anfragen. Nimmt die Person an, schreibt man sich über private Nachrichten.
 
-## Seiten / Bereiche
+Der Stil ist bewusst schlicht und klassisch: dunkelblaues Kopfband, Navigationsleiste, Brotkrumen, Tabellen mit
+Kategorie-Kopfzeilen, Beiträge mit Autorenspalte, Ränge und Signaturen. Keine großen runden Karten, keine Verläufe.
 
-0. **Landingpage**
-   - Kopfzeile mit Logo, Sprunglinks (So geht's, Funktionen, Fragen) und „App öffnen“
-   - Hero: „Lern nicht allein. Finde deinen Study Buddy.“ mit Beispiel-Profilkarte und zwei Buttons: „Jetzt Profil anlegen“ und „Erst mal umschauen“
-   - So geht's in drei Schritten, sechs Funktionen, drei Lernstile, häufige Fragen, Abschluss-Aufruf
-   - **Profil anlegen** in drei kurzen Schritten mit Fortschrittsbalken und verständlichen Fehlermeldungen
+## Bereiche
 
-1. **Buddy finden**
-   - Begrüßung und eine kurze Anleitung in 3 Schritten (Kurse eintragen → Anfrage schicken → zusammen lernen)
-   - Hinweis, wenn das Profil noch unvollständig ist
-   - Filterleiste mit Auswahlfeldern und Sortierung, aktive Filter als entfernbare Tags
-   - Filter: Kurs, Lernstil (ruhig & konzentriert / erklären & diskutieren / gegenseitig abfragen), Lernort (Bibliothek, Online, Café/Mensa, Lernraum), „nur wer gerade online ist“
-   - Profilkarten mit Name, Studiengang, Semester, gemeinsamen Kursen, Lernstil, Ort, gemeinsamen freien Zeiten und **Match in Prozent**
-   - Suche nach Kurs oder Name in der oberen Leiste
+1. **Forum (Startseite)**
+   - Für Gäste: kurze Erklärung „So funktioniert's“, Buttons „Registrieren“ und „Demo-Zugang“
+   - Für Angemeldete: „Willkommen zurück“ mit Hinweis auf neue Anfragen und Nachrichten
+   - Kategorien (Wirtschaftswissenschaften, Mathematik & Informatik, Psychologie, Rund ums Studium) mit Unterforen pro Kurs
+   - Spalten: Themen, Beiträge, letzter Beitrag; eigene Kurse mit ★ markiert, neue Beiträge hervorgehoben
+   - Seitenleiste: neue Gesuche, Klausur-Countdown, „Wer ist online?“, Statistik
 
-2. **Profil-Ansicht einer Person (Pop-up)**
-   - Kurzer Text über die Person
-   - **„Warum ihr gut passt“**: automatisch erzeugte Gründe (gleiche Kurse, gleiche Zeiten, gleicher Lernstil …)
-   - Wochenraster mit freien Zeiten; gemeinsame Zeiten sind gelb markiert
-   - Positives Feedback anderer Buddies (z. B. „Pünktlich“, „Erklärt gut“)
+2. **Kursforum**
+   - Themenliste mit Präfixen: Suche Buddy, Frage, Lerngruppe, Info
+   - Angepinnte Themen oben, Filter nach Art, Sortierung
+   - Button „Neues Thema“
 
-3. **Anfrage senden (Pop-up)**
-   - Vorausgefüllte Nachricht und **Eisbrecher-Vorschläge** zum Antippen
-   - Sicherheitshinweis: erstes Treffen an einem öffentlichen Ort, Uni-Mail bleibt bis zur Bestätigung verborgen
+3. **Thema**
+   - Beiträge mit Autorenspalte: Avatar, Benutzername, Rang, Studium, Beiträge, dabei seit, Online-Status
+   - Bei „Suche Buddy“: Kasten mit Kursen, freien Zeiten, Lernort, Lernstil, Match in Prozent und Gründen, Button „Als Buddy anfragen“
+   - Bei „Lerngruppe“: Termin, Ort, Plätze und Button „Teilnehmen“
+   - Zitieren, Antworten, Signaturen
 
-4. **Lernsessions**
-   - Liste offener Lerngruppen mit Datum, Uhrzeit, Ort, Kurs und freien Plätzen (Platz-Anzeige als Balken)
-   - „Mitmachen“ / „Verlassen“ mit einem Klick
-   - Eigene Session anbieten über ein einfaches Formular
+4. **Lernpartner finden** – Mitgliederliste mit Match, gemeinsamen Kursen und Filtern
 
-5. **Anfragen & Buddies**
-   - Eingehende Anfragen annehmen oder ablehnen
-   - Liste der eigenen Buddies mit einfachem **Chat** und Schnellantworten
-   - **Feedback geben** nach dem Lernen (nur positive Kudos)
-   - Gesendete Anfragen mit Status „Wartet auf Antwort“
+5. **Mitgliederprofil** – Über mich, „Passt die Person zu dir?“, Wochenplan mit gemeinsamen Zeiten, Feedback, letzte Beiträge
 
-6. **Mein Profil**
-   - Kurse hinzufügen/entfernen
-   - Freie Zeiten im Wochenraster antippen (Mo–Sa, Vormittag/Nachmittag/Abend)
-   - Lernstil, Lernorte und „Über mich“-Text
-   - **Fortschrittsbalken** „Profil zu X % vollständig“
-   - Änderungen wirken sofort auf die Match-Werte
+6. **Lerngruppen** – Terminliste, Teilnehmen/Abmelden, eigene Lerngruppe eintragen (erstellt automatisch ein Thema)
 
-7. **Seitenleiste**
-   - **Klausur-Countdown**: Tage bis zu den Klausuren der eigenen Kurse
-   - Lerntipp der Woche
+7. **Nachrichten** (überarbeitete „Anfragen & Buddies“)
+   - Ordner links: Posteingang, Buddy-Anfragen, Meine Buddies, Gesendete Anfragen
+   - Posteingang als Liste mit Betreff, ungelesene Nachrichten fett; Unterhaltungen mit Antwortfeld
+   - Buddy-Anfragen mit Match, gemeinsamen Kursen und Nachricht; Annehmen, Ablehnen, Profil
+   - Kurze Erklärung, was beim Annehmen passiert
+   - Buddyliste mit Status und den Aktionen Nachricht, Feedback, Entfernen
 
-## Kleine Features (Ideen)
+8. **Persönlicher Bereich** – Profil, Kurse, Lernzeiten, Lernstil und Orte, Fortschrittsanzeige, automatisches Speichern
 
-- Onboarding in drei Schritten statt eines langen Formulars
-- „Rückgängig“ bei wichtigen Aktionen
-- Hilfreiche leere Zustände mit einem nächsten Schritt
+9. **Hilfe & FAQ** mit Forenregeln, **Suche** über Themen und Mitglieder
 
-- Match-Prozent mit Begründung statt Blackbox
-- Gemeinsame freie Zeiten auf einen Blick
-- Eisbrecher-Nachrichten, damit der erste Schritt leichter fällt
-- Klausur-Countdown pro Kurs
-- Online-Status (grüner Punkt)
-- Positive Kudos statt Sterne-Bewertungen
-- Sicherheitshinweis für erste Treffen
-- Profil-Vollständigkeit als Motivation
-- Mobile Ansicht mit Tab-Leiste unten
+10. **Anmelden / Registrieren** – Registrierung in drei Schritten mit verständlichen Fehlermeldungen
+
+## Kleine Features
+
+- Match in Prozent mit Begründung
+- Gemeinsame freie Zeiten im Wochenplan markiert
+- Eisbrecher-Vorschläge für die erste Buddy-Anfrage
+- Klausur-Countdown für die eigenen Kurse
+- Positives Feedback (Kudos) statt Sternebewertung
+- „Rückgängig“ bei Ablehnen, Entfernen, Abmelden von Terminen
+- Lesen ohne Konto, Schreiben nach Anmeldung
+- Hell- und Dunkelmodus, mobile Ansicht
 
 ## Prompt, der zu dieser Seite führen könnte
 
-> Erstelle einen klickbaren Prototypen für eine Webseite namens **„Study Buddy“**, auf der Studierende an ihrer Uni einen Lernpartner finden. Die Seite beginnt mit einer **Landingpage** (Hero mit klarer Botschaft, „So geht's“ in drei Schritten, Funktionen, Lernstile, FAQ, Abschluss-Aufruf) und einem kurzen **Onboarding in drei Schritten**, um das eigene Profil anzulegen. Die Seite soll einfach und übersichtlich sein und sich optisch an Studydrive orientieren: helle Oberfläche, linke Seitennavigation, Inhalte als Karten, blauer Akzent, gelb für Hervorhebungen. Sprache: Deutsch. Umsetzung als statische Seite mit HTML, CSS und JavaScript (für Vercel), ohne Backend, mit Beispieldaten (ca. 8 fiktive Studierende, Kurse wie Statistik II, Mikroökonomie, Kosten- und Leistungsrechnung).
+> Erstelle einen klickbaren Prototypen für **„Study Buddy“**, ein Online-Forum, in dem Studierende an ihrer Uni Lernpartner finden. Die Seite soll wie ein typisches Forum aussehen (ähnlich phpBB oder Studydrive): dunkelblaues Kopfband mit Logo und Suche, Navigationsleiste, Brotkrumen, Tabellen mit Kategorie-Kopfzeilen, Beiträge mit Autorenspalte, Ränge und Signaturen. Schlichter, dichter Stil ohne große runde Karten und ohne Verläufe. Sprache: Deutsch. Umsetzung als statische Seite mit HTML, CSS und JavaScript ohne Backend (für Vercel), mit Beispieldaten (ca. 8 fiktive Studierende, Kurse wie Statistik II, Mikroökonomie, Kosten- und Leistungsrechnung).
 >
 > Bereiche:
-> 1. **Buddy finden**: Profilkarten mit Name, Studiengang, Semester, gemeinsamen Kursen, Lernstil, Lernort, gemeinsamen freien Zeiten und einem Match in Prozent. Filter nach Kurs, Lernstil, Ort und „gerade online“. Suchfeld oben.
-> 2. **Profil-Pop-up**: Über-mich-Text, Liste „Warum ihr gut passt“, Wochenraster mit gemeinsamen Zeiten, positives Feedback anderer.
-> 3. **Anfrage senden**: Nachricht mit Eisbrecher-Vorschlägen und einem Sicherheitshinweis für das erste Treffen.
-> 4. **Lernsessions**: offene Lerngruppen mit Datum, Ort, freien Plätzen, Mitmachen-Button und Formular, um eine eigene Session anzubieten.
-> 5. **Anfragen & Buddies**: Anfragen annehmen/ablehnen, einfacher Chat mit Buddies, Feedback (Kudos) geben.
-> 6. **Mein Profil**: Kurse, freie Zeiten (Wochenraster zum Antippen), Lernstil, Orte, Bio und eine Anzeige, wie vollständig das Profil ist.
-> 7. **Seitenleiste**: Klausur-Countdown für die eigenen Kurse und ein Lerntipp.
+> 1. **Forum-Startseite** mit Unterforen pro Kurs (Themen, Beiträge, letzter Beitrag), für Gäste eine kurze Erklärung mit „Registrieren“ und „Demo-Zugang“, Seitenleiste mit neuen Gesuchen, Klausur-Countdown, „Wer ist online?“ und Statistik.
+> 2. **Kursforum** mit Themenliste und Präfixen (Suche Buddy, Frage, Lerngruppe, Info), angepinnten Themen, Filter und „Neues Thema“.
+> 3. **Thema** mit Beiträgen, Zitieren und Antworten. Bei „Suche Buddy“ unter dem ersten Beitrag Kurse, Zeiten, Ort, Lernstil, Match in Prozent mit Gründen und „Als Buddy anfragen“.
+> 4. **Lernpartner finden**: Mitgliederliste mit Match und Filtern. **Mitgliederprofil** mit Wochenplan und gemeinsamen Zeiten.
+> 5. **Lerngruppen**: Terminliste mit Teilnehmen und „Lerngruppe eintragen“.
+> 6. **Nachrichten**: Posteingang, Buddy-Anfragen (annehmen/ablehnen), Buddyliste, gesendete Anfragen.
+> 7. **Persönlicher Bereich** für Profil, Kurse, Lernzeiten, Lernstil und Orte. **Hilfe & FAQ** mit Forenregeln.
 >
-> Usability: jede Seite hat einen klaren Seitenkopf mit Titel, kurzer Erklärung und einer Hauptaktion; Tabs statt langer Listen; hilfreiche leere Zustände; „Rückgängig“ bei Ablehnen, Austragen und Entfernen; verständliche Fehlermeldungen; Tastaturbedienung und sichtbarer Fokus; automatisches Speichern im Browser.
->
-> Wichtig: einfache Bedienung, wenige Klicks, funktioniert auch auf dem Handy (dann Navigation als Tab-Leiste unten), Hell- und Dunkelmodus.
+> Usability: Lesen ohne Konto, Schreiben nach Anmeldung; Registrierung in drei Schritten; klare Seitentitel; „Rückgängig“ bei wichtigen Aktionen; hilfreiche leere Zustände; verständliche Fehlermeldungen; Tastaturbedienung; mobil nutzbar; Hell- und Dunkelmodus.
