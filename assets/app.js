@@ -45,21 +45,30 @@
     bio: 'Ich lerne am liebsten vormittags in der Bib und suche jemanden, der bei Statistik dranbleibt.',
   });
 
+  const ago = (min) => Date.now() - min * 60000;
   const seedState = () => ({
     me: demoProfile(),
-    sent: { aylin: { text: 'Hi Aylin, hast du Lust, dienstags vormittags zusammen Statistik zu machen?' } },
+    sent: { aylin: { t: ago(60 * 26), text: 'Hi Aylin, hast du Lust, dienstags vormittags zusammen Statistik zu machen?' } },
     incoming: [
-      { id: 'mehmet', text: 'Hi! Wir sitzen beide in Statistik II. Hast du Lust, donnerstags nach der Vorlesung zusammen die Übungsblätter zu machen?' },
-      { id: 'clara', text: 'Hallo! Ich bin im ersten Semester und suche jemanden, der mit mir Statistik-Karteikarten durchgeht.' },
+      { id: 'mehmet', t: ago(130), text: 'Hi! Wir sitzen beide in Statistik II. Hast du Lust, donnerstags nach der Vorlesung zusammen die Übungsblätter zu machen?' },
+      { id: 'clara', t: ago(60 * 5), text: 'Hallo! Ich bin im ersten Semester und suche jemanden, der mit mir Statistik-Karteikarten durchgeht.' },
     ],
-    buddies: ['sophie'],
+    buddies: ['noah', 'sophie'],
     chats: {
       sophie: [
-        { me: false, text: 'Hey, steht Freitag 10 Uhr in der Mensa?' },
-        { me: true, text: 'Ja! Ich bringe die Zusammenfassung zu Kapitel 4 mit.' },
-        { me: false, text: 'Super, dann machen wir danach die Deckungsbeitragsrechnung.' },
+        { me: false, t: ago(60 * 27), text: 'Hey! Wollen wir diese Woche zusammen KLR machen?' },
+        { me: true, t: ago(60 * 26.5), text: 'Gern! Freitag vormittags würde bei mir passen.' },
+        { me: false, t: ago(60 * 26), type: 'meet', meet: { date: isoIn(4), time: '10:00', place: 'Mensa, hinterer Bereich', status: 'accepted' } },
+        { me: true, t: ago(60 * 3), text: 'Ich bringe die Zusammenfassung zu Kapitel 4 mit.' },
+        { me: false, t: ago(60 * 2.5), text: 'Super, dann machen wir danach die Deckungsbeitragsrechnung.' },
+      ],
+      noah: [
+        { me: true, t: ago(60 * 50), text: 'Hi Noah, danke fürs Annehmen! Lernst du Mikro eher vormittags?' },
+        { me: false, t: ago(60 * 49), text: 'Ja, am liebsten Mo, Mi oder Fr ab 9 in der Bib.' },
+        { me: false, t: ago(25), text: 'Hast du schon Übungsblatt 5 angeschaut? Aufgabe 3 ist echt fies.' },
       ],
     },
+    unread: { noah: 1 },
     extraKudos: {},
     sessions: [
       { id: 's1', course: 'STAT2', title: 'Altklausuren WiSe 25/26 durchrechnen', date: isoIn(3), from: '14:00', to: '16:00', place: 'Bibliothek, Gruppenraum 2.04', host: 'aylin', seats: 5, taken: 2, joined: false },
@@ -73,7 +82,7 @@
   // ---------------------------------------------------------------------------
   // Speicherung (nur im Browser)
   // ---------------------------------------------------------------------------
-  const KEY = 'studybuddy:v2';
+  const KEY = 'studybuddy:v3';
   function load() {
     try { const raw = localStorage.getItem(KEY); if (raw) return JSON.parse(raw); } catch (e) { /* ignorieren */ }
     return null;
@@ -87,6 +96,7 @@
   const ui = {
     route: 'start', q: '', course: 'mine', style: '', place: '', sort: 'match', onlyOnline: false,
     sessionTab: 'all', confirmReset: false,
+    sel: null, chatQ: '', typing: null,
   };
 
   // ---------------------------------------------------------------------------
@@ -204,9 +214,9 @@
   // ---------------------------------------------------------------------------
   const NAV_LABELS = { finden: 'Buddy finden', sessions: 'Lernsessions', buddies: 'Meine Buddies' };
   function renderChrome() {
-    const n = db.incoming.length;
+    const n = db.incoming.length + Object.keys(db.unread || {}).length;
     const cur = (id) => (ui.route === id ? 'aria-current="page"' : '');
-    $('#top-nav').innerHTML = ROUTES.filter((r) => NAV_LABELS[r.id]).map((r) => `<a href="#${r.id}" ${cur(r.id)} aria-label="${NAV_LABELS[r.id]}">${icon(r.icon)}<span class="nav-label">${NAV_LABELS[r.id]}</span>${r.id === 'buddies' && n ? `<span class="badge" aria-label="${n} neue Anfragen">${n}</span>` : ''}</a>`).join('')
+    $('#top-nav').innerHTML = ROUTES.filter((r) => NAV_LABELS[r.id]).map((r) => `<a href="#${r.id}" ${cur(r.id)} aria-label="${NAV_LABELS[r.id]}">${icon(r.icon)}<span class="nav-label">${NAV_LABELS[r.id]}</span>${r.id === 'buddies' && n ? `<span class="badge" aria-label="${n} neu">${n}</span>` : ''}</a>`).join('')
       + `<a class="nav-me" href="#profil" ${cur('profil')} aria-label="Mein Profil" title="Mein Profil">${myAvatar('sm')}</a>`;
   }
 
@@ -333,61 +343,204 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Seite: Meine Buddies (mit Anfragen)
+  // Seite: Meine Buddies (Messenger)
   // ---------------------------------------------------------------------------
+  const isMobile = () => window.matchMedia('(max-width: 760px)').matches;
+  const hm = (t) => new Date(t).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  function dayKey(t) { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); }
+  function dayLabel(t) {
+    const today = dayKey(Date.now()), k = dayKey(t);
+    if (k === today) return 'Heute';
+    if (k === today - 86400000) return 'Gestern';
+    return new Date(t).toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' });
+  }
+  function listTime(t) {
+    const today = dayKey(Date.now()), k = dayKey(t);
+    if (k === today) return hm(t);
+    if (k === today - 86400000) return 'Gestern';
+    return new Date(t).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
+  }
+  const meetShort = (m) => `${fmtDate(m.date, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${m.time} Uhr`;
+  const preview = (msg) => (msg.type === 'meet' ? `Lerntreffen: ${meetShort(msg.meet)}` : msg.text);
+  const lastMsg = (id) => (db.chats[id] || []).slice(-1)[0];
+  const seenText = (p) => (p.online ? 'online' : 'zuletzt heute aktiv');
+
+  function convItems() {
+    const q = ui.chatQ.trim().toLowerCase();
+    const hit = (id) => !q || person(id).name.toLowerCase().includes(q);
+    return {
+      req: db.incoming.filter((r) => hit(r.id)),
+      chats: db.buddies.filter(hit).sort((a, b) => (lastMsg(b)?.t || 0) - (lastMsg(a)?.t || 0)),
+      sent: Object.keys(db.sent).filter(hit),
+    };
+  }
+  function isValidSel(sel) {
+    if (sel.kind === 'req') return db.incoming.some((r) => r.id === sel.id);
+    if (sel.kind === 'chat') return db.buddies.includes(sel.id);
+    if (sel.kind === 'sent') return !!db.sent[sel.id];
+    return false;
+  }
+  function defaultSel() {
+    if (ui.sel && isValidSel(ui.sel)) return ui.sel;
+    if (isMobile()) return null;
+    if (db.incoming.length) return { kind: 'req', id: db.incoming[0].id };
+    const c = convItems().chats[0];
+    return c ? { kind: 'chat', id: c } : null;
+  }
+
+  function convRow(kind, id) {
+    const p = person(id);
+    const active = ui.sel && ui.sel.kind === kind && ui.sel.id === id;
+    const unread = kind === 'chat' ? (db.unread || {})[id] : 0;
+    let line, time = '', badge = '';
+    if (kind === 'req') {
+      const r = db.incoming.find((x) => x.id === id);
+      line = esc(r.text); time = r.t ? listTime(r.t) : ''; badge = '<span class="conv-new">Anfrage</span>';
+    } else if (kind === 'sent') {
+      line = 'Wartet auf Antwort'; time = db.sent[id].t ? listTime(db.sent[id].t) : '';
+    } else {
+      const m = lastMsg(id);
+      line = ui.typing === id ? '<i>schreibt …</i>' : m ? `${m.me ? 'Du: ' : ''}${esc(preview(m))}` : 'Noch keine Nachrichten';
+      time = m ? listTime(m.t) : '';
+      if (unread) badge = `<span class="badge" aria-label="${unread} ungelesen">${unread}</span>`;
+    }
+    return `<button class="conv ${active ? 'active' : ''} ${unread ? 'unread' : ''}" data-act="sel" data-kind="${kind}" data-id="${id}" ${active ? 'aria-current="true"' : ''}>
+      ${avatar(p)}
+      <span class="conv-main">
+        <span class="conv-top"><b>${esc(p.name)}</b><span class="conv-time">${time}</span></span>
+        <span class="conv-bottom"><span class="conv-line">${line}</span>${badge}</span>
+      </span>
+    </button>`;
+  }
+
+  function threadHtml(id) {
+    const p = person(id), msgs = db.chats[id] || [];
+    let html = '', lastDay = null;
+    const lastIdx = msgs.length - 1;
+    msgs.forEach((m, i) => {
+      const k = dayKey(m.t);
+      if (k !== lastDay) { html += `<div class="day"><span>${dayLabel(m.t)}</span></div>`; lastDay = k; }
+      const receipt = m.me && i === lastIdx ? ` · ${p.online ? 'Gesehen' : 'Zugestellt'}` : '';
+      if (m.type === 'meet') {
+        const st = m.meet.status;
+        const status = st === 'accepted' ? `${icon('check')}Zugesagt` : st === 'declined' ? 'Abgesagt' : m.me ? 'Wartet auf Antwort' : 'Offen';
+        html += `<div class="meet ${m.me ? 'me' : ''}">
+          <div class="meet-head">${icon('cal')}<span>Lerntreffen</span></div>
+          <div class="meet-when">${fmtDate(m.meet.date, { weekday: 'long', day: 'numeric', month: 'long' })}, ${m.meet.time} Uhr</div>
+          <div class="meet-where">${icon('pin')}${esc(m.meet.place)}</div>
+          ${st === 'open' && !m.me ? `<div class="meet-actions"><button class="btn btn-primary btn-sm" data-act="meet-yes" data-id="${id}" data-i="${i}">Zusagen</button><button class="btn btn-ghost btn-sm" data-act="meet-no" data-id="${id}" data-i="${i}">Absagen</button></div>` : ''}
+          <div class="meet-foot"><span class="meet-status ${st}">${status}</span><span class="time">${hm(m.t)}${receipt}</span></div>
+        </div>`;
+      } else {
+        html += `<div class="bubble ${m.me ? 'me' : ''}">${esc(m.text)}<span class="time">${hm(m.t)}${receipt}</span></div>`;
+      }
+    });
+    if (ui.typing === id) html += `<div class="bubble typing" aria-label="${esc(firstName(p.name))} schreibt"><i></i><i></i><i></i></div>`;
+    return html || `<div class="chat-empty">${icon('chat')}<p>Schreibt euch die erste Nachricht und macht ein Lerntreffen aus.</p></div>`;
+  }
+
+  function paneHead(p, extra = '') {
+    const m = matchInfo(p);
+    return `<header class="pane-head">
+      <button class="icon-btn back-btn" data-act="sel-back" aria-label="Zurück zur Liste">${icon('back')}</button>
+      ${avatar(p, 'sm')}
+      <div class="pane-who"><b>${esc(p.name)}</b><span class="small muted">${ui.typing === p.id ? 'schreibt …' : esc(seenText(p))}${m.shared.length ? ` · ${m.shared.map((c) => esc(courseName(c))).join(', ')}` : ''}</span></div>
+      ${extra}
+    </header>`;
+  }
+
+  function chatPane(sel) {
+    if (!sel) return `<div class="pane-empty">${icon('chat')}<h2>Wähle einen Chat</h2><p class="muted small">Links siehst du deine Buddies und neue Anfragen.</p></div>`;
+    const p = person(sel.id);
+    if (sel.kind === 'req') {
+      const r = db.incoming.find((x) => x.id === sel.id), m = matchInfo(p);
+      return `${paneHead(p, `<button class="btn btn-ghost btn-sm" data-act="view" data-id="${p.id}">Profil</button>`)}
+        <div class="thread" id="thread">
+          <div class="req-card">
+            ${avatar(p, 'lg')}
+            <b>${esc(p.name)}</b>
+            <span class="small muted">${esc(p.study)} · ${p.semester}. Semester</span>
+            <span class="match ${matchClass(m.score)} inline"><b>${m.score}%</b><small>Match</small></span>
+            ${m.reasons.length ? `<ul class="req-reasons">${m.reasons.slice(0, 3).map((x) => `<li>${icon('check')}<span>${esc(x)}</span></li>`).join('')}</ul>` : ''}
+          </div>
+          ${r.t ? `<div class="day"><span>${dayLabel(r.t)}</span></div>` : ''}
+          <div class="bubble">${esc(r.text)}${r.t ? `<span class="time">${hm(r.t)}</span>` : ''}</div>
+        </div>
+        <div class="decide">
+          <p class="small muted">${esc(firstName(p.name))} möchte dein Buddy werden. Wenn du annimmst, könnt ihr euch schreiben.</p>
+          <div class="decide-btns"><button class="btn btn-ghost" data-act="decline" data-id="${p.id}">Ablehnen</button><button class="btn btn-primary" data-act="accept" data-id="${p.id}">${icon('check')}Annehmen</button></div>
+        </div>`;
+    }
+    if (sel.kind === 'sent') {
+      const r = db.sent[sel.id];
+      return `${paneHead(p)}
+        <div class="thread" id="thread">
+          ${r.t ? `<div class="day"><span>${dayLabel(r.t)}</span></div>` : ''}
+          <div class="bubble me">${esc(r.text)}${r.t ? `<span class="time">${hm(r.t)}</span>` : ''}</div>
+        </div>
+        <div class="decide">
+          <p class="small muted">Deine Anfrage wartet auf Antwort. Sobald ${esc(firstName(p.name))} annimmt, könnt ihr hier schreiben.</p>
+          <div class="decide-btns"><button class="btn btn-ghost" data-act="withdraw" data-id="${p.id}">Anfrage zurückziehen</button></div>
+        </div>`;
+    }
+    const quick = ['Wann passt es dir diese Woche?', 'Bin in der Bib, 2. OG.', 'Hast du die Altklausuren?'];
+    return `${paneHead(p, `
+        <button class="btn btn-ghost btn-sm meet-btn" data-act="meet" data-id="${p.id}">${icon('cal')}<span>Treffen vorschlagen</span></button>
+        <details class="menu">
+          <summary class="icon-btn" aria-label="Weitere Aktionen">⋯</summary>
+          <div class="menu-list">
+            <button data-act="view" data-id="${p.id}">${icon('user')}Profil ansehen</button>
+            <button data-act="kudos" data-id="${p.id}">${icon('heart')}Feedback geben</button>
+            <button data-act="remove-buddy" data-id="${p.id}" class="danger">${icon('x')}Buddy entfernen</button>
+          </div>
+        </details>`)}
+      <div class="thread" id="thread" aria-live="polite">${threadHtml(p.id)}</div>
+      <div class="composer">
+        <div class="quick">${quick.map((q) => `<button class="chip" data-act="quick" data-id="${p.id}" data-t="${esc(q)}">${esc(q)}</button>`).join('')}</div>
+        <form class="compose-row" id="msg-form" data-id="${p.id}">
+          <button type="button" class="icon-btn" data-act="meet" data-id="${p.id}" aria-label="Lerntreffen vorschlagen" title="Lerntreffen vorschlagen">${icon('cal')}</button>
+          <label class="sr-only" for="msg-input">Nachricht an ${esc(firstName(p.name))}</label>
+          <input class="input" id="msg-input" placeholder="Nachricht an ${esc(firstName(p.name))}" autocomplete="off">
+          <button class="btn btn-primary send" aria-label="Senden">${icon('send')}</button>
+        </form>
+      </div>`;
+  }
+
   function viewBuddies() {
-    const sentIds = Object.keys(db.sent);
-    const requests = db.incoming.length ? `
-      <section class="stack-sm" aria-labelledby="h-req">
-        <h2 class="section-title" id="h-req">Neue Anfragen <span class="badge">${db.incoming.length}</span></h2>
-        <div class="list">${db.incoming.map((r) => {
-          const p = person(r.id), m = matchInfo(p);
-          return `<div class="row">
-            ${avatar(p)}
-            <div class="grow">
-              <b>${esc(p.name)}</b> <span class="small muted">· ${esc(p.study)} · ${m.score}% Match</span>
-              <p class="quote">${esc(r.text)}</p>
-            </div>
-            <div class="actions">
-              <button class="btn btn-ghost" data-act="view" data-id="${p.id}">Profil</button>
-              <button class="btn btn-ghost" data-act="decline" data-id="${p.id}">Ablehnen</button>
-              <button class="btn btn-primary" data-act="accept" data-id="${p.id}">${icon('check')}Annehmen</button>
-            </div>
-          </div>`;
-        }).join('')}</div>
-      </section>` : '';
+    const sel = defaultSel();
+    ui.sel = sel;
+    if (sel && sel.kind === 'chat' && db.unread && db.unread[sel.id]) { delete db.unread[sel.id]; renderChrome(); }
+    const { req, chats, sent } = convItems();
+    const list = `
+      <div class="list-pane">
+        <div class="list-top">
+          <h1>Meine Buddies</h1>
+          <label class="chat-search"><span class="sr-only">Chats durchsuchen</span>${icon('search')}<input id="chat-q" type="search" placeholder="Suchen" value="${esc(ui.chatQ)}" autocomplete="off"></label>
+        </div>
+        <div class="conv-list">
+          ${req.length ? `<div class="conv-group">Neue Anfragen <span class="badge">${req.length}</span></div>${req.map((r) => convRow('req', r.id)).join('')}` : ''}
+          <div class="conv-group">Chats</div>
+          ${chats.length ? chats.map((id) => convRow('chat', id)).join('') : `<p class="conv-empty small muted">${ui.chatQ ? 'Kein Treffer.' : 'Noch keine Buddies. <a href="#finden">Jetzt Buddy finden</a>'}</p>`}
+          ${sent.length ? `<div class="conv-group">Gesendete Anfragen</div>${sent.map((id) => convRow('sent', id)).join('')}` : ''}
+        </div>
+      </div>`;
+    return `<div class="messenger ${sel ? 'has-sel' : ''}">${list}<section class="chat-pane" aria-label="Unterhaltung">${chatPane(sel)}</section></div>`;
+  }
 
-    const buddies = `
-      <section class="stack-sm" aria-labelledby="h-buddies">
-        <h2 class="section-title" id="h-buddies">Meine Buddies <span class="muted">${db.buddies.length}</span></h2>
-        ${db.buddies.length ? `<div class="list">${db.buddies.map((id) => {
-          const p = person(id), m = matchInfo(p);
-          const last = (db.chats[id] || []).slice(-1)[0];
-          return `<div class="row">
-            ${avatar(p)}
-            <div class="grow"><b>${esc(p.name)}</b><p class="small muted">${m.shared.length ? 'Gemeinsam: ' + m.shared.map((c) => esc(courseName(c))).join(', ') : esc(p.study)}</p>
-              ${last ? `<p class="small muted" style="margin-top:4px">Letzte Nachricht: „${esc(last.text)}“</p>` : ''}</div>
-            <div class="actions">
-              <button class="btn btn-ghost" data-act="kudos" data-id="${p.id}">Feedback geben</button>
-              <button class="btn btn-ghost" data-act="remove-buddy" data-id="${p.id}" aria-label="${esc(p.name)} entfernen">Entfernen</button>
-              <button class="btn btn-primary" data-act="chat" data-id="${p.id}">${icon('chat')}Nachricht</button>
-            </div>
-          </div>`;
-        }).join('')}</div>` : `<div class="empty"><h3>Noch keine Buddies</h3><p class="small muted">Sobald jemand deine Anfrage annimmt oder du eine Anfrage annimmst, erscheint die Person hier.</p><a class="btn btn-primary" href="#finden">Buddy finden</a></div>`}
-      </section>`;
-
-    const sent = sentIds.length ? `
-      <section class="stack-sm" aria-labelledby="h-sent">
-        <h2 class="section-title" id="h-sent">Gesendete Anfragen <span class="muted">${sentIds.length}</span></h2>
-        <div class="list">${sentIds.map((id) => {
-          const p = person(id);
-          return `<div class="row">${avatar(p, 'sm')}<div class="grow"><b>${esc(p.name)}</b><p class="small muted">„${esc(db.sent[id].text)}“</p></div><span class="status wait">Wartet auf Antwort</span><button class="btn btn-ghost" data-act="withdraw" data-id="${id}">Zurückziehen</button></div>`;
-        }).join('')}</div>
-      </section>` : '';
-
-    return `
-      ${pageHead('Meine Buddies', db.incoming.length ? `Du hast ${plural(db.incoming.length, 'neue Anfrage', 'neue Anfragen')}.` : 'Deine Lernpartner und Anfragen an einem Ort.')}
-      <div class="stack" style="gap:28px">${requests}${buddies}${sent}</div>`;
+  function modalMeet(id) {
+    const p = person(id);
+    openModal(`
+      <div class="modal-head"><div class="who"><h2>Lerntreffen mit ${esc(firstName(p.name))}</h2><p class="small muted">Der Vorschlag erscheint im Chat. ${esc(firstName(p.name))} kann zu- oder absagen.</p></div><button class="icon-btn" data-act="close" aria-label="Schließen">${icon('x')}</button></div>
+      <form class="stack" id="meet-form" data-id="${id}" novalidate>
+        <div class="form-grid">
+          <div class="field"><label for="mt-date">Datum</label><input class="input" id="mt-date" type="date" min="${isoIn(0)}" value="${isoIn(1)}"></div>
+          <div class="field"><label for="mt-time">Uhrzeit</label><input class="input" id="mt-time" type="time" value="14:00"></div>
+        </div>
+        <div class="field"><label for="mt-place">Ort</label><input class="input" id="mt-place" list="mt-places" value="Bibliothek, 2. OG" maxlength="60">
+          <datalist id="mt-places"><option value="Bibliothek, 2. OG"><option value="Mensa"><option value="Online (Videocall)"><option value="Lernraum Campus"></datalist></div>
+        <p class="small" id="mt-error" style="color:var(--warn)" hidden></p>
+        <div class="modal-foot"><button type="button" class="btn btn-ghost" data-act="close">Abbrechen</button><button class="btn btn-primary">Vorschlag senden</button></div>
+      </form>`, 'Lerntreffen vorschlagen');
   }
 
   // ---------------------------------------------------------------------------
@@ -520,19 +673,11 @@
       </form>`, `Anfrage an ${p.name}`);
   }
 
-  function modalChat(id, keepFocus) {
-    const p = person(id);
-    const msgs = db.chats[id] || [];
-    openModal(`
-      <div class="modal-head">${avatar(p)}<div class="who"><h2>${esc(p.name)}</h2><p class="small muted">Dein Buddy</p></div>${closeBtn}</div>
-      <div class="chat" id="chat" aria-live="polite">${msgs.map((m) => `<div class="bubble ${m.me ? 'me' : ''}">${esc(m.text)}</div>`).join('') || '<p class="small muted">Schreibt euch die erste Nachricht und macht einen Termin aus.</p>'}</div>
-      <div class="chip-group">
-        <button type="button" class="chip" data-act="quick" data-id="${id}" data-t="Wann passt es dir diese Woche?">Wann passt es dir diese Woche?</button>
-        <button type="button" class="chip" data-act="quick" data-id="${id}" data-t="Ich bin heute in der Bib, 2. OG.">Ich bin heute in der Bib</button>
-      </div>
-      <form class="chat-form" id="chat-form" data-id="${id}"><label class="sr-only" for="chat-input">Nachricht</label><input class="input" id="chat-input" placeholder="Nachricht schreiben" autocomplete="off" autofocus><button class="btn btn-primary" aria-label="Senden">${icon('send')}</button></form>`, `Chat mit ${p.name}`);
-    const c = $('#chat'); c.scrollTop = c.scrollHeight;
-    if (keepFocus) $('#chat-input').focus();
+  function openChat(id) {
+    ui.sel = { kind: 'chat', id };
+    closeModal();
+    if (location.hash !== '#buddies') location.hash = 'buddies'; else render();
+    setTimeout(() => $('#msg-input')?.focus(), 0);
   }
 
   function modalKudos(id) {
@@ -634,6 +779,7 @@
     renderChrome();
     $('#view').innerHTML = { finden: viewFind, sessions: viewSessions, buddies: viewBuddies, profil: viewProfile }[ui.route]();
     if (focusId && $('#app').contains(document.getElementById(focusId))) document.getElementById(focusId).focus();
+    const th = $('#thread'); if (th) th.scrollTop = th.scrollHeight;
     save();
   }
 
@@ -643,11 +789,14 @@
     if (!p.online) return;
     setTimeout(() => {
       if (!db.sent[id]) return;
+      const req = db.sent[id];
       delete db.sent[id];
       if (!db.buddies.includes(id)) db.buddies.push(id);
-      db.chats[id] = [{ me: false, text: `Hi ${firstName(db.me.name)}, gerne! Wann passt es dir?` }];
+      db.chats[id] = [{ me: true, t: req.t || Date.now(), text: req.text }, { me: false, t: Date.now(), text: `Hi ${firstName(db.me.name)}, gerne! Wann passt es dir?` }];
+      const viewing = ui.route === 'buddies' && ui.sel && ui.sel.id === id;
+      if (viewing) ui.sel = { kind: 'chat', id }; else db.unread[id] = 1;
       render();
-      toast(`${firstName(p.name)} hat deine Anfrage angenommen`, { label: 'Chat öffnen', fn: () => modalChat(id) });
+      if (!viewing) toast(`${firstName(p.name)} hat deine Anfrage angenommen`, { label: 'Chat öffnen', fn: () => openChat(id) });
     }, 5000);
   }
 
@@ -685,7 +834,7 @@
       case 'ob-place': { const p = ob.data.places; ob.data.places = p.includes(id) ? p.filter((x) => x !== id) : [...p, id]; t.setAttribute('aria-pressed', ob.data.places.includes(id)); return; }
 
       case 'close': ob = null; return closeModal();
-      case 'view': return modalProfile(id);
+      case 'view': t.closest('details')?.removeAttribute('open'); return modalProfile(id);
       case 'ask': return modalAsk(id);
       case 'ice': $('#ask-text').value = modalAsk.ideas[+t.dataset.i]; $('#ask-text').focus(); return;
 
@@ -707,24 +856,38 @@
         const req = db.incoming[idx];
         db.incoming.splice(idx, 1);
         const accept = t.dataset.act === 'accept';
-        if (accept) { db.buddies.push(id); delete db.sent[id]; }
+        if (accept) {
+          db.buddies.push(id); delete db.sent[id];
+          db.chats[id] = [...(db.chats[id] || []), { me: false, t: req.t || Date.now(), text: req.text }];
+          ui.sel = { kind: 'chat', id };
+        } else ui.sel = null;
         closeModal(); render();
         const name = firstName(person(id).name);
         return toast(accept ? `${name} ist jetzt dein Buddy` : `Anfrage von ${name} abgelehnt`, {
-          label: 'Rückgängig', fn: () => { db.incoming.splice(idx, 0, req); if (accept) db.buddies = db.buddies.filter((b) => b !== id); render(); },
+          label: 'Rückgängig', fn: () => { db.incoming.splice(idx, 0, req); if (accept) db.buddies = db.buddies.filter((b) => b !== id); ui.sel = { kind: 'req', id }; render(); },
         });
       }
       case 'withdraw': {
-        const old = db.sent[id]; delete db.sent[id]; render();
+        const old = db.sent[id]; delete db.sent[id]; ui.sel = null; render();
         return toast('Anfrage zurückgezogen', { label: 'Rückgängig', fn: () => { db.sent[id] = old; render(); } });
       }
       case 'remove-buddy': {
-        const idx = db.buddies.indexOf(id); db.buddies.splice(idx, 1); render();
+        const idx = db.buddies.indexOf(id); db.buddies.splice(idx, 1); ui.sel = null; render();
         return toast(`${firstName(person(id).name)} entfernt`, { label: 'Rückgängig', fn: () => { db.buddies.splice(idx, 0, id); render(); } });
       }
-      case 'chat': return modalChat(id);
+      case 'chat': return openChat(id);
       case 'quick': return sendChat(id, t.dataset.t);
-      case 'kudos': return modalKudos(id);
+      case 'sel': ui.sel = { kind: t.dataset.kind, id }; render(); if (t.dataset.kind === 'chat' && !isMobile()) $('#msg-input')?.focus(); return;
+      case 'sel-back': ui.sel = null; return render();
+      case 'meet': t.closest('details')?.removeAttribute('open'); return modalMeet(id);
+      case 'meet-yes': case 'meet-no': {
+        const msg = db.chats[id][+t.dataset.i], yes = t.dataset.act === 'meet-yes';
+        msg.meet.status = yes ? 'accepted' : 'declined';
+        db.chats[id].push({ me: true, t: Date.now(), text: yes ? 'Passt, ich bin dabei!' : 'Da kann ich leider nicht. Hast du einen anderen Termin?' });
+        render();
+        return toast(yes ? 'Lerntreffen zugesagt' : 'Lerntreffen abgesagt');
+      }
+      case 'kudos': t.closest('details')?.removeAttribute('open'); return modalKudos(id);
       case 'kudo-pick': t.setAttribute('aria-pressed', t.getAttribute('aria-pressed') !== 'true'); $('#kudo-hint').hidden = true; return;
       case 'kudo-send': {
         const picked = $$('[data-act="kudo-pick"][aria-pressed="true"]').map((b) => b.dataset.id);
@@ -751,9 +914,28 @@
   function sendChat(id, text) {
     text = (text || '').trim();
     if (!text) return;
-    (db.chats[id] = db.chats[id] || []).push({ me: true, text });
-    save();
-    modalChat(id, true);
+    (db.chats[id] = db.chats[id] || []).push({ me: true, t: Date.now(), text });
+    render();
+    $('#msg-input')?.focus();
+    simulateReply(id, 'Klingt gut! Dann machen wir das so.');
+  }
+
+  // Online-Buddies antworten im Prototyp nach ein paar Sekunden.
+  function simulateReply(id, text, after) {
+    const p = person(id);
+    if (!p.online || ui.typing) return;
+    setTimeout(() => {
+      ui.typing = id; if (ui.route === 'buddies') render();
+      setTimeout(() => {
+        ui.typing = null;
+        if (after) after();
+        db.chats[id].push({ me: false, t: Date.now(), text });
+        const viewing = ui.route === 'buddies' && ui.sel && ui.sel.kind === 'chat' && ui.sel.id === id;
+        if (!viewing) db.unread[id] = (db.unread[id] || 0) + 1;
+        render();
+        if (!viewing) toast(`Neue Nachricht von ${firstName(p.name)}`, { label: 'Öffnen', fn: () => openChat(id) });
+      }, 1800);
+    }, 1200);
   }
 
   document.addEventListener('change', (e) => {
@@ -765,6 +947,7 @@
 
   document.addEventListener('input', (e) => {
     const el = e.target;
+    if (el.id === 'chat-q') { ui.chatQ = el.value; render(); const q = $('#chat-q'); q.setSelectionRange(q.value.length, q.value.length); return; }
     if (el.dataset.me === 'name' || el.dataset.me === 'bio') {
       db.me[el.dataset.me] = el.value;
       save();
@@ -781,12 +964,22 @@
       const id = f.dataset.id;
       const text = $('#ask-text').value.trim();
       if (!text) { $('#ask-text').focus(); return; }
-      db.sent[id] = { text };
+      db.sent[id] = { t: Date.now(), text };
       closeModal(); render();
       toast(`Anfrage an ${firstName(person(id).name)} gesendet`, { label: 'Rückgängig', fn: () => { delete db.sent[id]; render(); } });
       return simulateAnswer(id);
     }
-    if (f.id === 'chat-form') return sendChat(f.dataset.id, $('#chat-input').value);
+    if (f.id === 'msg-form') return sendChat(f.dataset.id, $('#msg-input').value);
+    if (f.id === 'meet-form') {
+      const id = f.dataset.id, date = $('#mt-date').value, time = $('#mt-time').value, place = $('#mt-place').value.trim();
+      const err = !date || daysUntil(date) < 0 ? 'Bitte wähle ein Datum ab heute.' : !time ? 'Bitte gib eine Uhrzeit an.' : !place ? 'Bitte gib einen Ort an.' : '';
+      if (err) { const e2 = $('#mt-error'); e2.textContent = err; e2.hidden = false; return; }
+      const msg = { me: true, t: Date.now(), type: 'meet', meet: { date, time, place, status: 'open' } };
+      db.chats[id].push(msg);
+      closeModal(); render();
+      toast('Vorschlag gesendet');
+      return simulateReply(id, 'Passt mir, ich habe zugesagt!', () => { msg.meet.status = 'accepted'; });
+    }
     if (f.id === 'session-form') {
       const v = (sel) => $(sel).value.trim();
       const err = !v('#ns-title') ? 'Bitte gib ein Thema an, damit andere wissen, worum es geht.'
@@ -802,6 +995,7 @@
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !$('#overlay').hidden) { ob = null; closeModal(); }
+    if (e.key === 'Escape') $$('details.menu[open]').forEach((d) => d.removeAttribute('open'));
     // Fokus im Dialog halten
     if (e.key === 'Tab' && !$('#overlay').hidden) {
       const items = $$('#overlay button:not([disabled]), #overlay input, #overlay select, #overlay textarea, #overlay a[href]');
