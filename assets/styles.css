@@ -207,6 +207,9 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 .top-nav svg { width: 18px; height: 18px; flex: none; }
 .top-nav .nav-me { padding: 3px; margin-left: 6px; border: 1px solid var(--line); }
 .top-nav .nav-me[aria-current="page"] { border-color: var(--accent); background: var(--accent-soft); }
+.section-title { font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+.section-title .muted { font-weight: 500; font-size: .95rem; }
+.stack-sm { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; }
 .filterbar { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
 .filterbar select { width: auto; min-width: 200px; border-radius: 999px; padding-inline: 16px; background: var(--surface); }
 .filterbar .count { color: var(--muted); font-size: .9rem; margin-left: auto; }

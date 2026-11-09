@@ -7,11 +7,11 @@ Entstanden als Uni-Projekt. Alle Personen, Kurse und Termine sind Beispieldaten.
 
 - **Landingpage:** Botschaft, Beispielkarte, „So geht's“ in drei Schritten, Aufruf zum Profil-Anlegen.
 - **Profil anlegen** in drei kurzen Schritten (über dich → Kurse → Lernstil, Orte und Zeiten).
-- **Kopfzeile der App:** Logo links, rechts oben die Hauptfunktionen: Buddy finden, Lernsessions, Anfragen und das eigene Profil.
+- **Kopfzeile der App:** Logo links, rechts oben die Hauptfunktionen: Buddy finden, Lernsessions, Meine Buddies und das eigene Profil.
 - **Buddy finden:** Vorschläge mit Match in Prozent, Filter nach Kurs und Lernstil.
 - **Anfrage senden** mit Eisbrecher-Vorschlägen und Sicherheitshinweis.
 - **Lernsessions:** offenen Lerngruppen beitreten oder selbst eine anbieten.
-- **Anfragen:** Anfragen annehmen oder ablehnen, mit Buddies chatten.
+- **Meine Buddies:** eigener Tab mit deinen Lernpartnern (Nachricht, Feedback, Entfernen). Neue Anfragen stehen oben auf derselben Seite und lassen sich dort annehmen oder ablehnen; darunter die gesendeten Anfragen.
 - **Mein Profil:** Kurse, Wochenplan, Lernstil und Orte, automatisch gespeichert.
 
 Hell- und Dunkelmodus, mobil nutzbar (auf dem Handy zeigt die Kopfzeile nur Symbole).

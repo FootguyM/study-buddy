@@ -86,7 +86,7 @@
   // Ansichtszustand, wird nicht gespeichert
   const ui = {
     route: 'start', q: '', course: 'mine', style: '', place: '', sort: 'match', onlyOnline: false,
-    sessionTab: 'all', reqTab: db.incoming.length ? 'in' : 'buddies', confirmReset: false,
+    sessionTab: 'all', confirmReset: false,
   };
 
   // ---------------------------------------------------------------------------
@@ -175,13 +175,14 @@
   const ROUTES = [
     { id: 'finden', label: 'Buddy finden', short: 'Finden', icon: 'compass' },
     { id: 'sessions', label: 'Lernsessions', short: 'Sessions', icon: 'cal' },
-    { id: 'anfragen', label: 'Anfragen & Buddies', short: 'Buddies', icon: 'users' },
+    { id: 'buddies', label: 'Meine Buddies', short: 'Buddies', icon: 'users' },
     { id: 'profil', label: 'Mein Profil', short: 'Profil', icon: 'user' },
   ];
   const LANDING_ANCHORS = ['so-gehts'];
 
   function route() {
-    const h = location.hash.replace('#', '');
+    let h = location.hash.replace('#', '');
+    if (h === 'anfragen') h = 'buddies';
     const isApp = ROUTES.some((r) => r.id === h);
     $('#landing').hidden = isApp;
     $('#app').hidden = !isApp;
@@ -201,11 +202,11 @@
   // ---------------------------------------------------------------------------
   // Rahmen: Navigation und Profil-Chip
   // ---------------------------------------------------------------------------
-  const NAV_LABELS = { finden: 'Buddy finden', sessions: 'Lernsessions', anfragen: 'Anfragen' };
+  const NAV_LABELS = { finden: 'Buddy finden', sessions: 'Lernsessions', buddies: 'Meine Buddies' };
   function renderChrome() {
     const n = db.incoming.length;
     const cur = (id) => (ui.route === id ? 'aria-current="page"' : '');
-    $('#top-nav').innerHTML = ROUTES.filter((r) => NAV_LABELS[r.id]).map((r) => `<a href="#${r.id}" ${cur(r.id)} aria-label="${NAV_LABELS[r.id]}">${icon(r.icon)}<span class="nav-label">${NAV_LABELS[r.id]}</span>${r.id === 'anfragen' && n ? `<span class="badge" aria-label="${n} neue Anfragen">${n}</span>` : ''}</a>`).join('')
+    $('#top-nav').innerHTML = ROUTES.filter((r) => NAV_LABELS[r.id]).map((r) => `<a href="#${r.id}" ${cur(r.id)} aria-label="${NAV_LABELS[r.id]}">${icon(r.icon)}<span class="nav-label">${NAV_LABELS[r.id]}</span>${r.id === 'buddies' && n ? `<span class="badge" aria-label="${n} neue Anfragen">${n}</span>` : ''}</a>`).join('')
       + `<a class="nav-me" href="#profil" ${cur('profil')} aria-label="Mein Profil" title="Mein Profil">${myAvatar('sm')}</a>`;
   }
 
@@ -332,57 +333,61 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Seite: Anfragen & Buddies
+  // Seite: Meine Buddies (mit Anfragen)
   // ---------------------------------------------------------------------------
-  function viewRequests() {
+  function viewBuddies() {
     const sentIds = Object.keys(db.sent);
-    const tabs = { in: ['Eingang', db.incoming.length], buddies: ['Meine Buddies', db.buddies.length], sent: ['Gesendet', sentIds.length] };
-    let body = '';
-    if (ui.reqTab === 'in') {
-      body = db.incoming.length ? `<div class="list">${db.incoming.map((r) => {
-        const p = person(r.id), m = matchInfo(p);
-        return `<div class="row">
-          ${avatar(p)}
-          <div class="grow">
-            <b>${esc(p.name)}</b> <span class="small muted">· ${esc(p.study)} · ${m.score}% Match</span>
-            <p class="quote">${esc(r.text)}</p>
-          </div>
-          <div class="actions">
-            <button class="btn btn-ghost" data-act="view" data-id="${p.id}">Profil</button>
-            <button class="btn btn-ghost" data-act="decline" data-id="${p.id}">Ablehnen</button>
-            <button class="btn btn-primary" data-act="accept" data-id="${p.id}">${icon('check')}Annehmen</button>
-          </div>
-        </div>`;
-      }).join('')}</div>` : `<div class="empty"><h3>Keine neuen Anfragen</h3><p class="small muted">Warte nicht ab, schreib selbst jemanden an. Die meisten freuen sich über eine Anfrage.</p><a class="btn btn-primary" href="#finden">Buddy finden</a></div>`;
-    } else if (ui.reqTab === 'buddies') {
-      body = db.buddies.length ? `<div class="list">${db.buddies.map((id) => {
-        const p = person(id), m = matchInfo(p);
-        const last = (db.chats[id] || []).slice(-1)[0];
-        return `<div class="row">
-          ${avatar(p)}
-          <div class="grow"><b>${esc(p.name)}</b><p class="small muted">${m.shared.length ? 'Gemeinsam: ' + m.shared.map((c) => esc(courseName(c))).join(', ') : esc(p.study)}</p>
-            ${last ? `<p class="small muted" style="margin-top:4px">Letzte Nachricht: „${esc(last.text)}“</p>` : ''}</div>
-          <div class="actions">
-            <button class="btn btn-ghost" data-act="kudos" data-id="${p.id}">Feedback geben</button>
-            <button class="btn btn-ghost" data-act="remove-buddy" data-id="${p.id}" aria-label="${esc(p.name)} entfernen">Entfernen</button>
-            <button class="btn btn-primary" data-act="chat" data-id="${p.id}">${icon('chat')}Nachricht</button>
-          </div>
-        </div>`;
-      }).join('')}</div>` : `<div class="empty"><h3>Noch keine Buddies</h3><p class="small muted">Sobald jemand deine Anfrage annimmt, erscheint die Person hier.</p><a class="btn btn-primary" href="#finden">Buddy finden</a></div>`;
-    } else {
-      body = sentIds.length ? `<div class="list">${sentIds.map((id) => {
-        const p = person(id);
-        return `<div class="row">${avatar(p, 'sm')}<div class="grow"><b>${esc(p.name)}</b><p class="small muted">„${esc(db.sent[id].text)}“</p></div><span class="status wait">Wartet auf Antwort</span><button class="btn btn-ghost" data-act="withdraw" data-id="${id}">Zurückziehen</button></div>`;
-      }).join('')}</div>` : `<div class="empty"><h3>Keine offenen Anfragen</h3><p class="small muted">Hier siehst du Anfragen, die du verschickt hast und auf die noch keine Antwort kam.</p></div>`;
-    }
+    const requests = db.incoming.length ? `
+      <section class="stack-sm" aria-labelledby="h-req">
+        <h2 class="section-title" id="h-req">Neue Anfragen <span class="badge">${db.incoming.length}</span></h2>
+        <div class="list">${db.incoming.map((r) => {
+          const p = person(r.id), m = matchInfo(p);
+          return `<div class="row">
+            ${avatar(p)}
+            <div class="grow">
+              <b>${esc(p.name)}</b> <span class="small muted">· ${esc(p.study)} · ${m.score}% Match</span>
+              <p class="quote">${esc(r.text)}</p>
+            </div>
+            <div class="actions">
+              <button class="btn btn-ghost" data-act="view" data-id="${p.id}">Profil</button>
+              <button class="btn btn-ghost" data-act="decline" data-id="${p.id}">Ablehnen</button>
+              <button class="btn btn-primary" data-act="accept" data-id="${p.id}">${icon('check')}Annehmen</button>
+            </div>
+          </div>`;
+        }).join('')}</div>
+      </section>` : '';
+
+    const buddies = `
+      <section class="stack-sm" aria-labelledby="h-buddies">
+        <h2 class="section-title" id="h-buddies">Meine Buddies <span class="muted">${db.buddies.length}</span></h2>
+        ${db.buddies.length ? `<div class="list">${db.buddies.map((id) => {
+          const p = person(id), m = matchInfo(p);
+          const last = (db.chats[id] || []).slice(-1)[0];
+          return `<div class="row">
+            ${avatar(p)}
+            <div class="grow"><b>${esc(p.name)}</b><p class="small muted">${m.shared.length ? 'Gemeinsam: ' + m.shared.map((c) => esc(courseName(c))).join(', ') : esc(p.study)}</p>
+              ${last ? `<p class="small muted" style="margin-top:4px">Letzte Nachricht: „${esc(last.text)}“</p>` : ''}</div>
+            <div class="actions">
+              <button class="btn btn-ghost" data-act="kudos" data-id="${p.id}">Feedback geben</button>
+              <button class="btn btn-ghost" data-act="remove-buddy" data-id="${p.id}" aria-label="${esc(p.name)} entfernen">Entfernen</button>
+              <button class="btn btn-primary" data-act="chat" data-id="${p.id}">${icon('chat')}Nachricht</button>
+            </div>
+          </div>`;
+        }).join('')}</div>` : `<div class="empty"><h3>Noch keine Buddies</h3><p class="small muted">Sobald jemand deine Anfrage annimmt oder du eine Anfrage annimmst, erscheint die Person hier.</p><a class="btn btn-primary" href="#finden">Buddy finden</a></div>`}
+      </section>`;
+
+    const sent = sentIds.length ? `
+      <section class="stack-sm" aria-labelledby="h-sent">
+        <h2 class="section-title" id="h-sent">Gesendete Anfragen <span class="muted">${sentIds.length}</span></h2>
+        <div class="list">${sentIds.map((id) => {
+          const p = person(id);
+          return `<div class="row">${avatar(p, 'sm')}<div class="grow"><b>${esc(p.name)}</b><p class="small muted">„${esc(db.sent[id].text)}“</p></div><span class="status wait">Wartet auf Antwort</span><button class="btn btn-ghost" data-act="withdraw" data-id="${id}">Zurückziehen</button></div>`;
+        }).join('')}</div>
+      </section>` : '';
+
     return `
-      ${pageHead('Anfragen & Buddies', 'Beantworte neue Anfragen und bleib mit deinen Lernpartnern in Kontakt.')}
-      <div class="stack">
-        <div class="tabs" role="tablist" aria-label="Bereiche">
-          ${Object.entries(tabs).map(([k, [label, n]]) => `<button role="tab" aria-selected="${ui.reqTab === k}" data-act="req-tab" data-id="${k}">${label} ${k === 'in' && n ? `<span class="badge">${n}</span>` : `<span class="muted">${n}</span>`}</button>`).join('')}
-        </div>
-        ${body}
-      </div>`;
+      ${pageHead('Meine Buddies', db.incoming.length ? `Du hast ${plural(db.incoming.length, 'neue Anfrage', 'neue Anfragen')}.` : 'Deine Lernpartner und Anfragen an einem Ort.')}
+      <div class="stack" style="gap:28px">${requests}${buddies}${sent}</div>`;
   }
 
   // ---------------------------------------------------------------------------
@@ -627,7 +632,7 @@
     if (ui.route === 'start') return;
     const focusId = document.activeElement?.id;
     renderChrome();
-    $('#view').innerHTML = { finden: viewFind, sessions: viewSessions, anfragen: viewRequests, profil: viewProfile }[ui.route]();
+    $('#view').innerHTML = { finden: viewFind, sessions: viewSessions, buddies: viewBuddies, profil: viewProfile }[ui.route]();
     if (focusId && $('#app').contains(document.getElementById(focusId))) document.getElementById(focusId).focus();
     save();
   }
@@ -697,7 +702,6 @@
         return toast(join ? `Du bist dabei: ${fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit' })}, ${s.from} Uhr` : 'Du hast dich ausgetragen', undo);
       }
 
-      case 'req-tab': ui.reqTab = id; return render();
       case 'accept': case 'decline': {
         const idx = db.incoming.findIndex((r) => r.id === id);
         const req = db.incoming[idx];
@@ -740,7 +744,7 @@
       case 'my-place': { const p = db.me.places; db.me.places = p.includes(id) ? p.filter((x) => x !== id) : [...p, id]; return render(); }
       case 'reset-ask': ui.confirmReset = true; return render();
       case 'reset-cancel': ui.confirmReset = false; return render();
-      case 'reset-do': db = seedState(); ui.confirmReset = false; ui.reqTab = 'in'; render(); return toast('Prototyp zurückgesetzt');
+      case 'reset-do': db = seedState(); ui.confirmReset = false; render(); return toast('Prototyp zurückgesetzt');
     }
   });
 
