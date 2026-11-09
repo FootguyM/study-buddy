@@ -1,30 +1,32 @@
 # Study Buddy
 
-Prototyp einer Webseite, auf der Studierende an ihrer Uni Lernpartner finden.
-Entstanden als Uni-Projekt. Alle Personen und Beiträge sind Beispieldaten.
+Prototyp einer Webseite, auf der Studierende an ihrer Uni einen Lernpartner finden.
+Entstanden als Uni-Projekt. Alle Personen, Kurse und Termine sind Beispieldaten.
 
-## Funktionen
+## Was die Seite kann
 
-Bewusst auf das Wichtigste reduziert:
+- **Landingpage** mit Erklärung in drei Schritten, Funktionen, Lernstilen und häufigen Fragen
+- **Profil anlegen** in drei kurzen Schritten (Name und Studiengang → Kurse → Lernstil, Orte und Zeiten)
+- **Buddy finden**: Vorschläge mit Match in Prozent und einer Begründung, Filter nach Kurs, Lernstil und Ort, Sortierung
+- **Anfrage senden** mit Eisbrecher-Vorschlägen und einem Sicherheitshinweis
+- **Lernsessions**: offenen Lerngruppen beitreten oder selbst eine anbieten
+- **Anfragen & Buddies**: Anfragen annehmen oder ablehnen, chatten, Feedback (Kudos) geben
+- **Mein Profil** mit Wochenplan, Fortschrittsanzeige und automatischem Speichern
+- **Klausur-Countdown** für die eigenen Kurse
+- Rückgängig-Funktion bei wichtigen Aktionen, Hell- und Dunkelmodus, mobile Ansicht mit Tab-Leiste
 
-- **Gesuche:** Liste aller Lernpartner-Gesuche im Forum-Stil, filterbar nach Kurs. Für Gäste steht oben eine kurze Erklärung in drei Schritten.
-- **Gesuch ansehen:** Text, Kurs, wann, wo und ob ihr gemeinsame Kurse habt. Darunter öffentliche Antworten.
-- **Anfrage senden:** kurze Nachricht an die Person, die das Gesuch erstellt hat.
-- **Gesuch erstellen:** Kurs, Titel, Zeit, Ort und Beschreibung.
-- **Nachrichten:** Anfragen annehmen oder ablehnen, mit Buddies chatten.
-- **Profil:** Name, Studiengang, Kurse, freie Zeit, Lernort, Text über dich.
-
-Lesen geht ohne Konto, zum Schreiben meldet man sich an (Demo-Konto) oder registriert sich.
 Eingaben werden nur im Browser gespeichert (localStorage). Es gibt kein Backend.
 
-## Dateien
+## Aufbau
 
 ```
-index.html          Gerüst mit Kopfleiste und Fußzeile
-assets/styles.css   Gestaltung (Hell/Dunkel, mobil)
-assets/app.js       Beispieldaten und Logik
+index.html          Landingpage und App-Gerüst
+assets/styles.css   Gestaltung (Farben, Layout, Hell/Dunkel)
+assets/app.js       Logik, Beispieldaten und Seiten der App
 beschreibung.md     Beschreibung der Seite und Prompt
 ```
+
+Die Seiten der App werden über die Adresse gesteuert: `#start` (Landingpage), `#finden`, `#sessions`, `#anfragen`, `#profil`.
 
 ## Lokal ansehen
 
@@ -32,7 +34,7 @@ beschreibung.md     Beschreibung der Seite und Prompt
 
 ## Auf Vercel veröffentlichen
 
-1. Auf [vercel.com](https://vercel.com) **Add New → Project** wählen.
+1. Auf [vercel.com](https://vercel.com) anmelden und **Add New → Project** wählen.
 2. Dieses Repository importieren.
 3. Framework Preset: **Other**. Build Command und Output Directory leer lassen.
-4. **Deploy** klicken. Danach geht jede Änderung im `main`-Branch automatisch live.
+4. **Deploy** klicken. Danach wird jede Änderung im `main`-Branch automatisch veröffentlicht.

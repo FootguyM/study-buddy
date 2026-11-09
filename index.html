@@ -4,30 +4,215 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Study Buddy</title>
-<meta name="description" content="Study Buddy – finde Lernpartner in deinen Uni-Kursen.">
-<meta name="theme-color" content="#1F3554">
+<meta name="description" content="Study Buddy: Finde an deiner Uni einen Lernpartner, der dieselben Kurse belegt, zur gleichen Zeit frei ist und so lernt wie du.">
+<meta name="theme-color" content="#2F48D4">
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%231F3554'/%3E%3Ctext x='16' y='21.5' font-family='Arial' font-weight='700' font-size='14' fill='white' text-anchor='middle'%3ESB%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232F48D4'/%3E%3Cpath d='M5 13 16 7.5 27 13 16 18.5z' fill='none' stroke='white' stroke-width='2.4' stroke-linejoin='round'/%3E%3Cpath d='M10 15.5V21c1.8 1.6 3.8 2.4 6 2.4s4.2-.8 6-2.4v-5.5' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Inter:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="assets/styles.css">
 </head>
 <body>
 
-<header class="top">
-  <div class="wrap">
-    <a class="logo" href="#start"><span class="logo-mark" aria-hidden="true">SB</span><span class="name">Study Buddy</span></a>
-    <nav id="nav" aria-label="Hauptnavigation"></nav>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-search" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+    <symbol id="i-compass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></symbol>
+    <symbol id="i-users" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.5 3.4-5.5 6.5-5.5s5.7 2 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18 14.8c1.8.7 3 2.5 3.5 5.2"/></symbol>
+    <symbol id="i-user" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4.2-6 8-6s7 2 8 6"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-bulb" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10 14M21 3l-7 18-4-7-7-4z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4.5 6v6c0 4.5 3.2 7.7 7.5 9 4.3-1.3 7.5-4.5 7.5-9V6z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20.5l1.4-4.6A8 8 0 1 1 21 12z"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-target" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3c0 5 10 5 10 9s-10 4-10 9M17 3c0 5-10 5-10 9s10 4 10 9"/></symbol>
+    <symbol id="i-heart" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7.5-4.4-9-9.5C2 6.8 4.6 4 7.6 4c2 0 3.4 1.1 4.4 2.6C13 5.1 14.4 4 16.4 4c3 0 5.6 2.8 4.6 6.5-1.5 5.1-9 9.5-9 9.5z"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></symbol>
+    <symbol id="i-logo" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5 12 5l9 4.5-9 4.5z"/><path d="M7 11.5V16c1.4 1.3 3 2 5 2s3.6-.7 5-2v-4.5"/></symbol>
+  </defs>
+</svg>
+
+<a class="skip" href="#main" data-skip>Zum Inhalt springen</a>
+
+<!-- ================= LANDINGPAGE ================= -->
+<div class="landing" id="landing">
+  <header class="l-header">
+    <div class="wrap">
+      <a class="brand" href="#start"><span class="brand-mark"><svg><use href="#i-logo"/></svg></span><span>Study Buddy</span></a>
+      <nav class="l-nav" aria-label="Seitenbereiche">
+        <a href="#so-gehts" data-scroll>So geht's</a>
+        <a href="#funktionen" data-scroll>Funktionen</a>
+        <a href="#faq" data-scroll>Fragen</a>
+      </nav>
+      <a class="btn btn-ghost" href="#finden">App öffnen</a>
+    </div>
+  </header>
+
+  <div id="main-landing">
+    <section class="hero">
+      <div class="wrap">
+        <div>
+          <span class="eyebrow">Für Studierende aller Fächer · kostenlos</span>
+          <h1>Lern nicht allein. Finde deinen <mark>Study Buddy</mark>.</h1>
+          <p class="lead">Study Buddy zeigt dir Kommiliton:innen, die dieselben Kurse belegen, zur gleichen Zeit frei sind und so lernen wie du. Eine Anfrage, und ihr habt euren ersten Termin.</p>
+          <div class="hero-cta">
+            <button class="btn btn-primary btn-lg" data-act="onboard">Jetzt Profil anlegen <svg><use href="#i-arrow"/></svg></button>
+            <a class="btn btn-ghost btn-lg" href="#finden">Erst mal umschauen</a>
+          </div>
+          <ul class="hero-points">
+            <li><svg><use href="#i-check"/></svg>Profil in 2 Minuten</li>
+            <li><svg><use href="#i-check"/></svg>Nur mit Uni-Mail</li>
+            <li><svg><use href="#i-check"/></svg>Kein Abo, keine Werbung</li>
+          </ul>
+        </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="card back">
+            <div class="card-head">
+              <span class="avatar av2">AD</span>
+              <div class="who"><h3>Aylin Demir</h3><p class="small muted">VWL · 3. Sem.</p></div>
+              <div class="match mid"><b>81%</b><small>Match</small></div>
+            </div>
+          </div>
+          <div class="card front">
+            <div class="card-head">
+              <span class="avatar av1">JW<span class="online"></span></span>
+              <div class="who"><h3>Jonas Weber</h3><p class="small muted">BWL (B.Sc.) · 3. Sem.</p></div>
+              <div class="match"><b>94%</b><small>Match</small></div>
+            </div>
+            <div class="tags"><span class="tag">Statistik II</span><span class="tag">Mikroökonomie I</span></div>
+            <ul class="reasons">
+              <li><svg><use href="#i-check"/></svg><span>Ihr belegt beide Statistik II und Mikroökonomie I.</span></li>
+              <li><svg><use href="#i-check"/></svg><span>Ihr habt Di und Do nachmittags frei.</span></li>
+              <li><svg><use href="#i-check"/></svg><span>Ihr lernt beide gern in der Bibliothek.</span></li>
+            </ul>
+            <div class="card-actions"><span class="btn btn-primary"><svg><use href="#i-send"/></svg>Anfrage senden</span></div>
+          </div>
+          <div class="float-note"><span class="dot"><svg><use href="#i-check"/></svg></span><span><b>Jonas hat angenommen.</b><br><span class="muted">Do, 14 Uhr · Bibliothek</span></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="l-section alt" id="so-gehts">
+      <div class="wrap">
+        <div class="l-section-head">
+          <span class="label">So geht's</span>
+          <h2>In drei Schritten zum Lernpartner</h2>
+          <p>Kein langes Formular, kein Swipen. Du sagst, was du lernst und wann du Zeit hast. Den Rest übernimmt Study Buddy.</p>
+        </div>
+        <ol class="steps">
+          <li><h3>Profil anlegen</h3><p>Wähle deine Kurse, deine freien Zeiten und wie du am liebsten lernst.</p></li>
+          <li><h3>Vorschläge ansehen</h3><p>Du siehst, wer passt und warum: gemeinsame Kurse, gleiche Zeiten, gleicher Lernstil.</p></li>
+          <li><h3>Anfrage senden und loslegen</h3><p>Schick eine kurze Nachricht. Sobald die Anfrage angenommen ist, macht ihr einen Termin aus.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="l-section" id="funktionen">
+      <div class="wrap">
+        <div class="l-section-head">
+          <span class="label">Funktionen</span>
+          <h2>Alles, was du zum gemeinsamen Lernen brauchst</h2>
+          <p>Bewusst einfach gehalten. Jede Funktion hilft dir, schneller ins Lernen zu kommen.</p>
+        </div>
+        <div class="features">
+          <div class="feature"><span class="ficon"><svg><use href="#i-target"/></svg></span><h3>Match mit Begründung</h3><p>Jeder Vorschlag zeigt, warum er passt. Keine Blackbox, sondern klare Gründe.</p></div>
+          <div class="feature"><span class="ficon"><svg><use href="#i-clock"/></svg></span><h3>Gemeinsame Zeiten</h3><p>Im Wochenplan siehst du sofort, wann ihr beide frei seid.</p></div>
+          <div class="feature"><span class="ficon"><svg><use href="#i-cal"/></svg></span><h3>Offene Lernsessions</h3><p>Kleine Gruppen mit festem Termin. Einfach dazukommen oder selbst eine anbieten.</p></div>
+          <div class="feature"><span class="ficon"><svg><use href="#i-chat"/></svg></span><h3>Eisbrecher</h3><p>Fertige Nachrichten für die erste Anfrage, damit der Anfang leichter fällt.</p></div>
+          <div class="feature"><span class="ficon"><svg><use href="#i-hourglass"/></svg></span><h3>Klausur-Countdown</h3><p>Die Tage bis zu deinen Klausuren immer im Blick.</p></div>
+          <div class="feature"><span class="ficon"><svg><use href="#i-heart"/></svg></span><h3>Nur positives Feedback</h3><p>Nach dem Lernen gibst du Kudos wie „Pünktlich“ oder „Erklärt gut“. Keine Sterne, kein Ranking.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="l-section alt">
+      <div class="wrap">
+        <div class="l-section-head">
+          <span class="label">Lernstile</span>
+          <h2>Jeder lernt anders. Finde jemanden, der zu dir passt.</h2>
+        </div>
+        <div class="styles-row">
+          <div class="style-card"><span class="label">Ruhig & konzentriert</span><p>Ihr sitzt zusammen, lernt still und klärt Fragen in den Pausen.</p></div>
+          <div class="style-card"><span class="label">Erklären & diskutieren</span><p>Ihr erklärt euch gegenseitig den Stoff und rechnet Aufgaben laut durch.</p></div>
+          <div class="style-card"><span class="label">Gegenseitig abfragen</span><p>Karteikarten, Definitionen, Altklausuren: Ihr fragt euch ab, bis es sitzt.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="l-section" id="faq">
+      <div class="wrap">
+        <div class="l-section-head">
+          <span class="label">Fragen</span>
+          <h2>Häufige Fragen</h2>
+        </div>
+        <div class="faq">
+          <details><summary>Kostet Study Buddy etwas?</summary><p>Nein. Study Buddy ist für Studierende kostenlos und ohne Werbung.</p></details>
+          <details><summary>Wer kann mein Profil sehen?</summary><p>Nur angemeldete Studierende deiner Uni. Deine Uni-Mail bleibt verborgen, bis du eine Anfrage annimmst.</p></details>
+          <details><summary>Was ist, wenn es mit meinem Buddy nicht passt?</summary><p>Kein Problem. Du kannst Anfragen ablehnen und Buddies jederzeit entfernen. Die andere Person bekommt darüber keine Benachrichtigung.</p></details>
+          <details><summary>Wie sicher sind die Treffen?</summary><p>Wir empfehlen, euch beim ersten Mal an einem öffentlichen Ort zu treffen, zum Beispiel in der Bibliothek. Darauf weisen wir bei jeder Anfrage hin.</p></details>
+          <details><summary>Ist das schon eine fertige App?</summary><p>Nein, das ist ein Prototyp aus einem Uni-Projekt. Alle Personen und Termine sind Beispieldaten. Deine Eingaben werden nur in deinem Browser gespeichert.</p></details>
+        </div>
+      </div>
+    </section>
+
+    <section class="l-section" style="padding-top:0">
+      <div class="wrap">
+        <div class="cta-band">
+          <div><h2>Bereit für deine nächste Lernsession?</h2><p>Leg dein Profil an und sieh sofort, wer zu dir passt.</p></div>
+          <button class="btn btn-primary btn-lg" data-act="onboard">Jetzt Profil anlegen <svg><use href="#i-arrow"/></svg></button>
+        </div>
+      </div>
+    </section>
   </div>
-</header>
 
-<main id="inhalt">
-  <div class="wrap" id="view"></div>
-</main>
+  <footer class="l-footer">
+    <div class="wrap">
+      <span>Study Buddy · Prototyp aus einem Uni-Projekt</span>
+      <span><a href="#faq" data-scroll>Häufige Fragen</a> · <a href="#finden">Zur App</a></span>
+    </div>
+  </footer>
+</div>
 
-<footer><div class="wrap">Study Buddy · Prototyp aus einem Uni-Projekt · Alle Personen und Beiträge sind Beispieldaten</div></footer>
+<!-- ================= APP ================= -->
+<div class="app" id="app" hidden>
+  <aside class="sidebar" aria-label="Hauptnavigation">
+    <a class="brand" href="#start" title="Zur Startseite"><span class="brand-mark"><svg><use href="#i-logo"/></svg></span><span>Study Buddy</span></a>
+    <nav class="nav" id="side-nav"></nav>
+    <div class="side-foot">
+      <div class="side-card">
+        <span class="label">Wintersemester 26/27</span>
+        <p class="small">Vorlesungen bis 12. Februar 2027, danach beginnt die Klausurphase.</p>
+      </div>
+      <a class="btn btn-text" href="#start" style="justify-content:flex-start"><svg><use href="#i-back"/></svg>Zur Startseite</a>
+    </div>
+  </aside>
 
+  <main class="main" id="main" tabindex="-1">
+    <div class="main-inner">
+      <div class="topbar">
+        <a class="brand mobile-brand" href="#start" aria-label="Zur Startseite"><span class="brand-mark"><svg><use href="#i-logo"/></svg></span><span>Study Buddy</span></a>
+        <label class="search">
+          <span class="sr-only">Suche nach Kurs oder Name</span>
+          <svg><use href="#i-search"/></svg>
+          <input id="q" type="search" placeholder="Kurs oder Name suchen" autocomplete="off">
+        </label>
+        <a class="me-chip" href="#profil" id="me-chip"></a>
+      </div>
+      <div id="view"></div>
+    </div>
+  </main>
+</div>
+
+<nav class="tabbar" id="tab-nav" aria-label="Navigation" hidden></nav>
 <div class="overlay" id="overlay" hidden></div>
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
